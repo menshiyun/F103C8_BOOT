@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xB</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../FATFS/Target;../FATFS/App;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Middlewares/Third_Party/FatFs/src;../Drivers/CMSIS/Include;../BSP/Inc</IncludePath>
+              <IncludePath>../Core/Inc;../FATFS/Target;../FATFS/App;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Middlewares/Third_Party/FatFs/src;../Drivers/CMSIS/Include;../BSP/Inc;../App/Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -387,12 +387,32 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>Application/User/App</GroupName>
+          <Files>
+            <File>
+              <FileName>crc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\Src\crc.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtd266x_main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\Src\rtd266x_main.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>Application/User/BSP</GroupName>
           <Files>
             <File>
               <FileName>bsp_norflash.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BSP\Src\bsp_norflash.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_i2c_soft.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\Src\bsp_i2c_soft.c</FilePath>
             </File>
           </Files>
         </Group>

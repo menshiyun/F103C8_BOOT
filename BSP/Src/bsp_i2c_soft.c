@@ -1,5 +1,5 @@
 
-#include "stm32f4xx_hal.h"
+#include "stm32f1xx_hal.h"
 
 #include "bsp_i2c_soft.h"
 

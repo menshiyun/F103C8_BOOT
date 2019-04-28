@@ -57,6 +57,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include "bsp_norflash.h"
+#include "rtd266x_main.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -76,6 +77,7 @@ typedef void (*pJumpFunc)(void);
 
 /* USER CODE BEGIN 0 */
 static void FPGA_Download(void);
+static void RTD2660_Download(void);
 static void JumpToApplication(void);
 /* USER CODE END 0 */
 
@@ -123,6 +125,7 @@ int main(void)
   while (1)
   {
     FPGA_Download();
+    RTD2660_Download();
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -311,6 +314,40 @@ static void FPGA_Download(void)
 
     DCLK_High;DCLK_Low;
     DCLK_High;DCLK_Low;
+
+    RETURN:
+    retUSER = f_close(&USERFile);
+}
+
+#define RTD_FILE "rtd.bin"
+
+static void RTD2660_Download(void)
+{
+    const FlashDesc *chip = NULL;
+    uint32_t jedec_id = 0;
+
+    rtd266x_init();
+
+    retUSER = f_open(&USERFile, FPGA_FILE, FA_READ);
+    if (retUSER != FR_OK)
+        return;
+
+    for(int i = 0; i < 4; i++)
+    {
+        WriteReg(0x6f, 0x80);
+        if(!(ReadReg(0x6f) & 0x80))
+            continue;
+        jedec_id = SPICommonCommand(E_CC_READ, 0x9f, 3, 0, 0);
+        chip = FindChip(jedec_id);
+        break;
+    }
+
+    if (chip == NULL)
+        goto RETURN;
+
+    SetupChipCommands(chip->jedec_id);
+
+    ProgramFlash(&USERFile, chip->size_kb * 1024);
 
     RETURN:
     retUSER = f_close(&USERFile);

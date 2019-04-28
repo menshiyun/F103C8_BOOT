@@ -977,12 +977,6 @@
   <group>
     <name>Application</name>
     <group>
-      <name>BSP</name>
-      <file>
-        <name>$PROJ_DIR$\..\BSP\Src\bsp_norflash.c</name>
-      </file>
-    </group>
-    <group>
       <name>EWARM</name>
       <file>
         <name>$PROJ_DIR$\startup_stm32f103xb.s</name>
@@ -990,6 +984,15 @@
     </group>
     <group>
       <name>User</name>
+      <group>
+        <name>BSP</name>
+        <file>
+          <name>$PROJ_DIR$\..\BSP\Src\bsp_i2c_soft.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\BSP\Src\bsp_norflash.c</name>
+        </file>
+      </group>
       <group>
         <name>Core</name>
         <file>

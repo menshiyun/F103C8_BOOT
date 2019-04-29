@@ -255,7 +255,6 @@ static void FPGA_Download(void)
     if (retUSER != FR_OK)
         return;
 
-    CONFIGURATION:
     retUSER = f_lseek(&USERFile, 0);
     if (retUSER != FR_OK)
         goto RETURN;
@@ -308,9 +307,6 @@ static void FPGA_Download(void)
     {
         DCLK_High;DCLK_Low;
     }
-
-    if (!DONE_Read)
-        goto CONFIGURATION;
 
     DCLK_High;DCLK_Low;
     DCLK_High;DCLK_Low;

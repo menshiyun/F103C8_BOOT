@@ -255,10 +255,6 @@ static void FPGA_Download(void)
     if (retUSER != FR_OK)
         return;
 
-    retUSER = f_lseek(&USERFile, 0);
-    if (retUSER != FR_OK)
-        goto RETURN;
-
     while (!STA_Read);
 
     CFG_Low;

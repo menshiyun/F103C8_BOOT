@@ -205,6 +205,14 @@ DRESULT USER_ioctl (
         *(WORD*)buff = STORAGE_BLK_SIZ;
         res = RES_OK;
         break;
+      case GET_SECTOR_COUNT:
+        *(DWORD*)buff = STORAGE_BLK_NBR;
+        res = RES_OK;
+        break;
+      case GET_BLOCK_SIZE:
+        *(DWORD*)buff = 1;
+        res = RES_OK;
+        break;
       default:
         break;
     }

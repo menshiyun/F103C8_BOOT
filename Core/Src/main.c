@@ -117,7 +117,9 @@ int main(void)
   HAL_TIM_Base_Start(&htim4);
   __HAL_SPI_ENABLE(&hspi1);
   norflash->Init();
-  retUSER = f_mount(&USERFatFS, USERPath, 0);
+  retUSER = f_mount(&USERFatFS, USERPath, 1);
+  if (retUSER != FR_OK)
+      retUSER = f_mkfs(USERPath, 0, 4096);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -213,17 +215,23 @@ void SystemClock_Config(void)
 #define DATA_High (DATA_GPIO->BSRR = DATA_Pin)
 #define DATA_Low  (DATA_GPIO->BSRR = DATA_Pin << 16)
 
-#define FPGA_FILE "fpga.rbf"
+#define TIMEOUT_MS 5000
+
+#define FPGA_FILE "fpga*.rbf"
 
 #define LENS 0x400
 
 static void FPGA_Download(void)
 {
+    unsigned int curticks = 0;
     char buf[LENS] = {0};
     int  filesize  = 0;
     int  fileptr   = 0;
     int  length    = 0;
     int  rcnt      = 0;
+    DIR     dir    = {0};
+    FILINFO finfo  = {0};
+    TCHAR   lbuf[_MAX_LFN + 1] = {0};
 
     GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -251,11 +259,26 @@ static void FPGA_Download(void)
     GPIO_InitStruct.Pin   = DATA_Pin;
     HAL_GPIO_Init(DATA_GPIO, &GPIO_InitStruct);
 
-    retUSER = f_open(&USERFile, FPGA_FILE, FA_READ);
+    finfo.lfname = lbuf;
+    finfo.lfsize = sizeof(lbuf);
+
+    retUSER = f_findfirst(&dir, &finfo, "", FPGA_FILE);
     if (retUSER != FR_OK)
         return;
 
-    while (!STA_Read);
+    retUSER = f_open(&USERFile, finfo.fname, FA_READ);
+    if (retUSER != FR_OK)
+        return;
+
+    curticks = HAL_GetTick();
+    while ((HAL_GetTick() - curticks) < TIMEOUT_MS)
+    {
+        if (STA_Read)
+            break;
+    }
+
+    if (!STA_Read)
+        goto RETURN;
 
     CFG_Low;
     usDelay(1);
@@ -311,16 +334,26 @@ static void FPGA_Download(void)
     retUSER = f_close(&USERFile);
 }
 
-#define RTD266X_FILE "rtd266x.bin"
+#define RTD266X_FILE "rtd266x*.bin"
 
 static void RTD266X_Download(void)
 {
     const FlashDesc *chip = NULL;
     uint32_t jedec_id = 0;
+    DIR      dir      = {0};
+    FILINFO  finfo    = {0};
+    TCHAR    lbuf[_MAX_LFN + 1] = {0};
 
     rtd266x_init();
 
-    retUSER = f_open(&USERFile, RTD266X_FILE, FA_READ);
+    finfo.lfname = lbuf;
+    finfo.lfsize = sizeof(lbuf);
+
+    retUSER = f_findfirst(&dir, &finfo, "", RTD266X_FILE);
+    if (retUSER != FR_OK)
+        return;
+
+    retUSER = f_open(&USERFile, finfo.fname, FA_READ);
     if (retUSER != FR_OK)
         return;
 
@@ -344,7 +377,7 @@ static void RTD266X_Download(void)
 
     retUSER = f_close(&USERFile);
 
-    retUSER = f_unlink(RTD266X_FILE);
+    retUSER = f_unlink(finfo.fname);
 
     return;
 

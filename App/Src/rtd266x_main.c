@@ -45,7 +45,7 @@ static const FlashDesc FlashDevices[] = {
 static I2C_PortType rtd_port = {
     .SDA   = {GPIOB, GPIO_PIN_7},
     .SCL   = {GPIOB, GPIO_PIN_6},
-    .Delay = 10,
+    .Delay = 1,
     .Busy  = 0,
 };
 

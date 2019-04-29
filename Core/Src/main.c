@@ -350,6 +350,8 @@ static void RTD266X_Download(void)
     if (!ProgramFlash(&USERFile, chip->size_kb * 1024))
         goto RETURN;
 
+    retUSER = f_close(&USERFile);
+
     retUSER = f_unlink(RTD266X_FILE);
 
     return;

@@ -80,7 +80,7 @@ uint32_t ReadReg(uint8_t a) {
     I2C_SOFT_OBJ *i2c = BSP_I2C_OBJ();
     uint8_t d = 0;
     i2c->MemoryRdWr(&rtd_port, 1, RTD_I2CADDR, 1, a, &d, 1);
-    return d;    
+    return d;
 }
 
 int ReadBytesFromAddr(uint8_t reg, uint8_t* dest, uint8_t len) {
@@ -97,7 +97,7 @@ uint32_t SPICommonCommand(ECommondCommandType cmd_type, uint8_t cmd_code, uint8_
     uint8_t reg_value = (cmd_type << 5) |
         (num_writes << 3) |
             (num_reads << 1);
-    
+
     WriteReg(0x60, reg_value);
     WriteReg(0x61, cmd_code);
     switch (num_writes) {
@@ -163,11 +163,11 @@ uint8_t SPIComputeCRC(uint32_t start, uint32_t end) {
     WriteReg(0x64, start >> 16);
     WriteReg(0x65, start >> 8);
     WriteReg(0x66, start);
-    
+
     WriteReg(0x72, end >> 16);
     WriteReg(0x73, end >> 8);
     WriteReg(0x74, end);
-    
+
     WriteReg(0x6f, 0x84);
     uint8_t b;
     do
@@ -201,33 +201,33 @@ void SetupChipCommands(uint32_t jedec_id) {
 int SaveFlash(FIL *f, uint32_t chip_size) {
     uint8_t buffer[128];
     uint32_t addr = 0;
-    uint32_t wcnt = 0;
+    unsigned int wcnt = 0;
     InitCRC();
-    
+
     do {
         SPIRead(addr, buffer, sizeof(buffer));
         f_write(f, buffer, sizeof(buffer), &wcnt);
-        
+
         ProcessCRC(buffer, sizeof(buffer));
         addr += sizeof(buffer);
     } while (addr < chip_size);
-    
+
     uint8_t data_crc = GetCRC();
     uint8_t chip_crc = SPIComputeCRC(0, chip_size - 1);
-    
+
     return data_crc == chip_crc;
 }
 
 int VerifyFlash(FIL *f, uint32_t file_size) {
     uint32_t addr = 0;
     uint8_t buffer[64], buffer2[64];
-    uint32_t rcnt = 0;
-    
+    unsigned int rcnt = 0;
+
     InitCRC();
     do {
         memset(buffer, 0xFF, sizeof(buffer));
         memset(buffer2, 0xFF, sizeof(buffer2));
-        
+
         SPIRead(addr, buffer, sizeof(buffer));
         f_read(f, buffer2, sizeof(buffer), &rcnt);
         if (memcmp(buffer, buffer2, sizeof(buffer)) != 0) {
@@ -236,10 +236,10 @@ int VerifyFlash(FIL *f, uint32_t file_size) {
         ProcessCRC(buffer, sizeof(buffer));
         addr += sizeof(buffer);
     } while (addr < file_size);
-    
+
     uint8_t data_crc = GetCRC();
     uint8_t chip_crc = SPIComputeCRC(0, file_size - 1);
-    
+
     return data_crc == chip_crc;
 }
 
@@ -259,15 +259,15 @@ int EraseFlash(void) {
 
 int ProgramFlash(FIL *f, uint32_t chip_size) {
     uint32_t prog_size = f_size(f);
-    uint32_t r         = 0;
-    
+    unsigned int r = 0;
+
     EraseFlash();
-    
+
     // Arduino i2c can only handle 16 bytes at a time!
     uint8_t buffer[256];
     uint8_t b;
     uint32_t addr = 0;
-    
+
     uint32_t remaining_len = prog_size;
     InitCRC();
     do
@@ -276,30 +276,30 @@ int ProgramFlash(FIL *f, uint32_t chip_size) {
         do {
             b = ReadReg(0x6f);
         } while (b & 0x40);
-        
+
         // Fill with 0xff in case we read a partial buffer.
         memset(buffer, 0xff, sizeof(buffer));
-        
+
         uint16_t len = sizeof(buffer);
         if (len > remaining_len) {
             len = remaining_len;
         }
         f_read(f, buffer, len, &r);
-        
+
         if (r != len) {
             return 0;
         }
         remaining_len -= len;
-        
+
         if (ShouldProgramPage(buffer, sizeof(buffer))) {
             // Set program size-1
             WriteReg(0x71, 255);
-            
+
             // Set the programming address
             WriteReg(0x64, addr >> 16);
             WriteReg(0x65, addr >> 8);
             WriteReg(0x66, addr);
-            
+
             // Write the content to register 0x70
             // we can only write 16 bytes at a time tho
             for (uint16_t x=0; x < 256; x += 16) {
@@ -310,18 +310,18 @@ int ProgramFlash(FIL *f, uint32_t chip_size) {
         ProcessCRC(buffer, sizeof(buffer));
         addr += sizeof(buffer);
     } while ((addr < chip_size) && (remaining_len != 0));
-    
+
     // Wait for programming cycle to finish
     do {
         b = ReadReg(0x6f);
     } while (b & 0x40);
-    
+
     SPICommonCommand(E_CC_WRITE_AFTER_EWSR, 1, 0, 1, 0x1c); // Unprotect the Status Register
     SPICommonCommand(E_CC_WRITE_AFTER_WREN, 1, 0, 1, 0x1c); // Protect the flash
-    
+
     uint8_t data_crc = GetCRC();
     uint8_t chip_crc = SPIComputeCRC(0, addr - 1);
-    
+
     return data_crc == chip_crc;
 }
 

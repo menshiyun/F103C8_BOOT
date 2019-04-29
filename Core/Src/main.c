@@ -77,7 +77,7 @@ typedef void (*pJumpFunc)(void);
 
 /* USER CODE BEGIN 0 */
 static void FPGA_Download(void);
-static void RTD2660_Download(void);
+static void RTD266X_Download(void);
 static void JumpToApplication(void);
 /* USER CODE END 0 */
 
@@ -125,7 +125,7 @@ int main(void)
   while (1)
   {
     FPGA_Download();
-    RTD2660_Download();
+    RTD266X_Download();
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -319,16 +319,16 @@ static void FPGA_Download(void)
     retUSER = f_close(&USERFile);
 }
 
-#define RTD_FILE "rtd.bin"
+#define RTD266X_FILE "rtd266x.bin"
 
-static void RTD2660_Download(void)
+static void RTD266X_Download(void)
 {
     const FlashDesc *chip = NULL;
     uint32_t jedec_id = 0;
 
     rtd266x_init();
 
-    retUSER = f_open(&USERFile, FPGA_FILE, FA_READ);
+    retUSER = f_open(&USERFile, RTD266X_FILE, FA_READ);
     if (retUSER != FR_OK)
         return;
 
@@ -347,7 +347,12 @@ static void RTD2660_Download(void)
 
     SetupChipCommands(chip->jedec_id);
 
-    ProgramFlash(&USERFile, chip->size_kb * 1024);
+    if (!ProgramFlash(&USERFile, chip->size_kb * 1024))
+        goto RETURN;
+
+    retUSER = f_unlink(RTD266X_FILE);
+
+    return;
 
     RETURN:
     retUSER = f_close(&USERFile);

@@ -352,10 +352,10 @@ static void RTD266X_Download(void)
     retUSER = f_close(&USERFile);
 }
 
-typedef void (*pJumpFunc)(void);
-
 #define APP_OFST (0xB000)
 #define APP_ADDR (FLASH_BASE + APP_OFST)
+
+typedef void (*pJumpFunc)(void);
 
 static void JumpToApplication(void)
 {

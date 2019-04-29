@@ -72,7 +72,7 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-typedef void (*pJumpFunc)(void);
+
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -359,6 +359,8 @@ static void RTD266X_Download(void)
     RETURN:
     retUSER = f_close(&USERFile);
 }
+
+typedef void (*pJumpFunc)(void);
 
 #define APP_OFST (0xB000)
 #define APP_ADDR (FLASH_BASE + APP_OFST)

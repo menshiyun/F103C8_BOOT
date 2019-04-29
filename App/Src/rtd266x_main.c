@@ -48,7 +48,7 @@ static I2C_PortType rtd_port = {
     .Busy  = 0,
 };
 
-#define RTD_I2CADDR 0x4A       // shouldn't change, i2c addr o
+#define RTD_I2CADDR (0x4A << 1)      // shouldn't change, i2c addr o
 
 void rtd266x_init(void)
 {
@@ -59,20 +59,26 @@ void rtd266x_init(void)
 int WriteReg(uint8_t a, uint8_t d)
 {
     I2C_SOFT_OBJ *i2c = BSP_I2C_OBJ();
-    i2c->MemoryRdWr(&rtd_port, 0, RTD_I2CADDR, 1, a, &d, 1);
+    uint8_t buf[2] = {0};
+    buf[0] = a;
+    buf[1] = d;
+    i2c->DataRdWr(&rtd_port, 0, RTD_I2CADDR, buf, 2);
     return 1;
 }
 
 int WriteBytesToAddr(uint8_t reg, uint8_t* values, uint8_t len)
 {
     I2C_SOFT_OBJ *i2c = BSP_I2C_OBJ();
-    i2c->MemoryRdWr(&rtd_port, 0, RTD_I2CADDR, 1, reg, values, len);
+    uint8_t buf[32] = {0};
+    buf[0] = reg;
+    memcpy(&buf[1], values, len);
+    i2c->DataRdWr(&rtd_port, 0, RTD_I2CADDR, buf, 1 + len);
     return 1;
 }
 
 uint32_t ReadReg(uint8_t a) {
-    uint8_t d = 0;
     I2C_SOFT_OBJ *i2c = BSP_I2C_OBJ();
+    uint8_t d = 0;
     i2c->MemoryRdWr(&rtd_port, 1, RTD_I2CADDR, 1, a, &d, 1);
     return d;    
 }
